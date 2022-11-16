@@ -1,0 +1,155 @@
+const area = document.querySelector('.area');
+const cells = document.querySelectorAll('.cell');
+const winText = document.querySelector('.winText');
+const restartBtn = document.querySelector('.restartBtn');
+const alertText = document.querySelector('.alert');
+
+let game = true;
+let player = 'x';
+let winIndex = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+];
+
+function start() {
+    for (let i = 0; i < cells.length; i++) {
+        cells[i].addEventListener('click', clickButton);
+    }
+}
+
+restartBtn.addEventListener('click', restart);
+
+function restart() {
+    for (let i = 0; i < cells.length; i++) {
+        cells[i].innerHTML = '';
+    }
+    winText.classList.remove('winActive');
+    start();
+    game = true;
+}
+
+function clickButton() {
+    let data = [];
+
+    if (game) {
+        if (!this.innerHTML) {
+            this.innerHTML = player;
+            winText.classList.remove('winActive');
+        } else {
+            winText.classList.add('winActive');
+            winText.innerHTML = 'Эта ячейка занята!';
+            player = player == 'x' ? 'o' : 'x';
+        }
+
+        for (let i in cells) {
+            if (cells[i].innerHTML == player) {
+                data.push(parseInt(cells[i].getAttribute('pos')));
+            }
+        }
+
+        if (checkWin(data)) {
+            winText.classList.add('winActive');
+            winText.innerHTML = 'Победил: ' + player;
+            for (let i = 0; i < cells.length; i++) {
+                cells[i].removeEventListener('click', clickButton);
+            }
+            game = false;
+        }
+
+        player = player == 'x' ? 'o' : 'x';
+
+        if (player === 'o') {
+            bot(data, player);
+        }
+
+    }
+};
+
+function checkWin(data) {
+    for (let i in winIndex) {
+        let win = true;
+        for (let j in winIndex[i]) {
+            let id = winIndex[i][j];
+            let ind = data.indexOf(id);
+
+            if (ind == -1) {
+                win = false
+            }
+        }
+
+        if (win) return true;
+    }
+    return false;
+}
+start();
+
+function bot(data, player) {
+
+    let res = [];
+    let test = []
+
+    let cloneWin = JSON.parse(JSON.stringify(winIndex));
+
+    let maxPreority = 0;
+    let enemyPreority = 0;
+
+    cloneWin.forEach(item => {
+
+        let enemyPos = []
+
+        let enemyFound = false;
+        let dataFound = false;
+
+        for (let i in cells) {
+            if (cells[i].innerHTML === player) {
+                enemyPos.push(parseInt(cells[i].getAttribute('pos')));
+            }
+        }
+
+        item.forEach((element) => {
+            data.forEach(dataItem => {
+
+                if (element === dataItem) {
+                    dataFound = true;
+                }
+            })
+
+            console.log('dataFound', dataFound);
+        });
+        item.forEach((element) => {
+            enemyPos.forEach(enemyItem => {
+                if ((element === enemyItem) && dataFound) enemyFound = true
+            })
+            console.log('enemyFound', enemyFound);
+        });
+
+        console.log('=---------=');
+
+        console.log('item', item);
+
+        console.log('=---------=');
+
+        if (enemyFound) enemyPreority++;
+        if (dataFound) maxPreority++;
+
+        //res.push([preority])
+
+    });
+
+    console.log('PreMaxPreority', maxPreority);
+    console.log('enemyPreority', enemyPreority);
+
+    maxPreority -= enemyPreority;
+
+    console.log('maxPreority', maxPreority);
+    console.log('=-----------------------=');
+}
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+}
